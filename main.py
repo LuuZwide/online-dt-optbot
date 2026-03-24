@@ -547,7 +547,7 @@ if __name__ == "__main__":
     parser.add_argument("--ordering", type=int, default=0)
 
     # shared evaluation options
-    parser.add_argument("--eval_rtg", type=int, default=3600)
+    parser.add_argument("--eval_rtg", type=float, default=3600)
     parser.add_argument("--num_eval_episodes", type=int, default=10)
     parser.add_argument("--num_eval_rollouts", type=int, default=10)
 
@@ -564,7 +564,7 @@ if __name__ == "__main__":
 
     # finetuning options
     parser.add_argument("--max_online_iters", type=int, default=1500)
-    parser.add_argument("--online_rtg", type=int, default=7200)
+    parser.add_argument("--online_rtg", type=float, default=7200)
     parser.add_argument("--num_online_rollouts", type=int, default=1)
     parser.add_argument("--replay_size", type=int, default=1000)
     parser.add_argument("--num_updates_per_online_iter", type=int, default=300)
