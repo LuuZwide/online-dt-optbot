@@ -19,7 +19,7 @@ class Logger:
         utils.mkdir(self.log_path)
         print(f"Experiment log path: {self.log_path}")
 
-    def log_metrics(self, outputs, iter_num, total_transitions_sampled, writer):
+    def log_metrics(self, outputs, iter_num, total_transitions_sampled):
         print("=" * 80)
         print(f"Iteration {iter_num}")
 
@@ -30,14 +30,6 @@ class Logger:
 
         for k, v in outputs.items():
             print(f"{k}: {v}")
-            if writer:
-                writer.add_scalar(k, v, iter_num)
-                if k == "evaluation/return_mean_gm":
-                    writer.add_scalar(
-                        "evaluation/return_vs_samples",
-                        v,
-                        total_transitions_sampled,
-                    )
                     
         wandb.log(outputs, step = iter_num, commit= False)
         wandb.log(rcsl_outputs, step = iter_num, commit= True)

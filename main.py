@@ -5,7 +5,7 @@ This source code is licensed under the CC BY-NC license found in the
 LICENSE.md file in the root directory of this source tree.
 """
 
-from torch.utils.tensorboard import SummaryWriter# type: ignore
+# type: ignore
 import argparse
 import pickle
 import random
@@ -262,9 +262,6 @@ class Experiment:
             device=self.device,
         )
 
-        writer = (
-            SummaryWriter(self.logger.log_path) if self.variant["log_to_tb"] else None
-        )
         while self.pretrain_iter < self.variant["max_pretrain_iters"]:
             # in every iteration, prepare the data loader
             dataloader = create_dataloader(
@@ -295,7 +292,6 @@ class Experiment:
                 outputs,
                 iter_num=self.pretrain_iter,
                 total_transitions_sampled=self.total_transitions_sampled,
-                writer=writer,
             )
 
             self._save_model(
@@ -342,9 +338,6 @@ class Experiment:
                 reward_scale=self.reward_scale,
             )
         ]
-        writer = (
-            SummaryWriter(self.logger.log_path) if self.variant["log_to_tb"] else None
-        )
         
         while self.online_iter < self.variant["max_online_iters"]:
             
@@ -399,7 +392,6 @@ class Experiment:
                 outputs,
                 iter_num=self.pretrain_iter + self.online_iter,
                 total_transitions_sampled=self.total_transitions_sampled,
-                writer=writer,
             )
 
             self._save_model(
