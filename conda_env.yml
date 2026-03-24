@@ -1,0 +1,16 @@
+name: odt_test
+channels:
+  - pytorch
+dependencies:
+  - python=3.8.10
+  - pip:
+    - gym
+    - numpy>=1.20.3
+    - stable-baselines3>=1.1.0
+    - tensorboard>=2.5.0
+    - torch>=1.8.1
+    - transformers>=4.5.1
+    - git+https://github.com/Farama-Foundation/d4rl@master#egg=d4rl
+    - Cython<3
+    - shimmy>=2.0
+    - minari[all]
