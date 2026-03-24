@@ -150,7 +150,7 @@ class ChartEnv(gym.Env):
     self.prev_action = None
 
     self.counter = 1
-    return state, {}
+    return state
 
   def step(self, action):
 
@@ -194,7 +194,7 @@ class ChartEnv(gym.Env):
         'action_dict' : actions,
         'port_value' : self.port_value
     }
-    return next_state, reward, done,trunc, info
+    return next_state, reward, done, info
 
   def close(self):
     pass
