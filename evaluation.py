@@ -43,7 +43,7 @@ def create_vec_eval_episodes_fn(
         return {
             f"evaluation/return_mean{suffix}": np.mean(returns),
             f"evaluation/return_std{suffix}": np.std(returns),
-            f"evaluation/score_mean{suffix}": (env_name, np.mean(returns)) * 100,
+            f"evaluation/score_mean{suffix}":  np.mean(returns),
             f"evaluation/length_mean{suffix}": np.mean(lengths),
             f"evaluation/length_std{suffix}": np.std(lengths),
         }
