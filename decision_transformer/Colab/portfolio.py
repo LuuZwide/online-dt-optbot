@@ -178,7 +178,7 @@ class portfolio():
     for symbol in self.symbols:
       self.total_trans[symbol] = self.b_counters[symbol] + self.s_counters[symbol] + self.n_counters[symbol]
 
-    reward = reward
+    reward = np.clip(reward*1000.0, -1, 1)
 
     self.prev_value = current_value
     self.prev_reward = reward

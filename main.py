@@ -89,7 +89,7 @@ class Experiment:
         self.online_iter = 0
         self.total_transitions_sampled = 0
         self.variant = variant
-        self.reward_scale = 1
+        self.reward_scale = 1.0
         variant["exp_name"] = "ODT-"+ variant["env"]+ "-"+ variant["tag"]
         wandb.init(
             name = variant["exp_name"],
