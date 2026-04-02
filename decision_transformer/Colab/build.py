@@ -5,7 +5,7 @@ import pandas as pd
 
 
 def build_env():
-    symbols = ['EURUSD', 'GBPUSD','USDJPY']
+    symbols = ['EURUSD', 'GBPUSD','USDJPY','USDCHF']
     df_charts = {}
 
     # build charts
@@ -42,8 +42,8 @@ def build_env():
         env_test_charts[symbol] = test_data
         env_close_test_prices[symbol] = test_close_data
     
-    train_env = ChartEnv(chart_dict = env_charts, close_prices= env_close_prices , symbols = symbols,timesteps = 1, episode_length = 1000, recurrent= False, random_start=True) 
-    test_env = ChartEnv(chart_dict = env_test_charts, close_prices= env_close_test_prices , symbols = symbols,timesteps = 1, episode_length = 1000, recurrent= False, random_start=True)
+    train_env = ChartEnv(chart_dict = env_charts, close_prices= env_close_prices , symbols = symbols,timesteps = 1, episode_length = 1440, recurrent= False, random_start=True) 
+    test_env = ChartEnv(chart_dict = env_test_charts, close_prices= env_close_test_prices , symbols = symbols,timesteps = 1, episode_length = 1440, recurrent= False, random_start=True)
 
     return train_env, test_env
 

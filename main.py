@@ -28,7 +28,7 @@ from logger import Logger
 from decision_transformer.Colab import build
 import os
 
-MAX_EPISODE_LEN = 1000
+MAX_EPISODE_LEN = 1440
 os.environ["WANDB_MODE"] = "offline"
 
 
@@ -102,8 +102,8 @@ class Experiment:
         self.logger = Logger(variant)
 
     def _get_env_spec(self, variant):
-        state_dim = 20
-        act_dim = 3
+        state_dim = 26
+        act_dim = 4
         action_range = [
             float(-1.0) + 1e-6,
             float(1.0) - 1e-6,
