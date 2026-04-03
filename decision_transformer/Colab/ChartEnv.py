@@ -184,6 +184,9 @@ class ChartEnv(gym.Env):
 
     #log info variables
 
+    if self.current_value < 0.997:
+      done = True
+
     #log s_counter and b_counter
     info = {
         'current_value': self.current_value,
