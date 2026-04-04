@@ -36,6 +36,8 @@ class Logger:
         print("completed logging")
 
     def create_log_path(self, variant):
+        if variant.get("log_path"):
+            return variant["log_path"]
         now = datetime.now().strftime("%Y.%m.%d/%H%M%S")
         exp_name = variant["exp_name"]
         prefix = variant["save_dir"]

@@ -154,12 +154,8 @@ class ChartEnv(gym.Env):
 
   def step(self, action):
 
-    trunc = False
     done = False
     reward = self.calculate_reward(action)
-
-    if(self.counter%self.episode_length == 0):
-      trunc = True
 
     close_prices = {}
     for symbol in self.symbols:

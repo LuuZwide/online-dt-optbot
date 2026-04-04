@@ -34,6 +34,12 @@ os.environ["WANDB_MODE"] = "offline"
 
 class Experiment:
     def __init__(self, variant):
+        checkpoint = None
+        if variant.get("continue_training"):
+            checkpoint = self._get_checkpoint(variant["model_path_prefix"])
+            variant["log_path"] = checkpoint.get("log_path")
+
+        self.variant = variant
 
         self.state_dim, self.act_dim, self.action_range = self._get_env_spec(variant)
         self.offline_trajs, self.state_mean, self.state_std = self._load_dataset(
@@ -88,18 +94,29 @@ class Experiment:
         self.pretrain_iter = 0
         self.online_iter = 0
         self.total_transitions_sampled = 0
-        self.variant = variant
         self.reward_scale = 1.0
         variant["exp_name"] = "ODT-"+ variant["env"]+ "-"+ variant["tag"]
-        wandb.init(
-            name = variant["exp_name"],
-            project = "decision-transformer-opt-experiments",
-            config=variant,
-            tags = [],
-            reinit=True
-        )
+
+        wandb_kwargs = {
+            "name": variant["exp_name"],
+            "project": "decision-transformer-opt-experiments",
+            "config": variant,
+            "tags": [],
+            "reinit": True,
+        }
+        if checkpoint is not None:
+            wandb_run_id = checkpoint.get("wandb_run_id")
+            if not wandb_run_id:
+                raise ValueError("Checkpoint is missing wandb_run_id; cannot resume the same W&B run.")
+            wandb_kwargs["id"] = wandb_run_id
+            wandb_kwargs["resume"] = "must"
+
+        wandb.init(**wandb_kwargs)
         print("wandb initialised")
         self.logger = Logger(variant)
+
+        if checkpoint is not None:
+            self._restore_checkpoint(checkpoint, variant["model_path_prefix"])
 
     def _get_env_spec(self, variant):
         state_dim = 26
@@ -123,6 +140,11 @@ class Experiment:
             "python": random.getstate(),
             "pytorch": torch.get_rng_state(),
             "log_temperature_optimizer_state_dict": self.log_temperature_optimizer.state_dict(),
+            "replay_buffer_trajectories": self.replay_buffer.trajectories,
+            "replay_buffer_start_idx": self.replay_buffer.start_idx,
+            "aug_trajs": self.aug_trajs,
+            "log_path": self.logger.log_path,
+            "wandb_run_id": wandb.run.id if wandb.run is not None else None,
         }
 
         with open(f"{path_prefix}/model.pt", "wb") as f:
@@ -134,23 +156,33 @@ class Experiment:
                 torch.save(to_save, f)
             print(f"Model saved at {path_prefix}/pretrain_model.pt")
 
-    def _load_model(self, path_prefix):
-        if Path(f"{path_prefix}/model.pt").exists():
-            with open(f"{path_prefix}/model.pt", "rb") as f:
-                checkpoint = torch.load(f)
-            self.model.load_state_dict(checkpoint["model_state_dict"])
-            self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-            self.scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
-            self.log_temperature_optimizer.load_state_dict(
-                checkpoint["log_temperature_optimizer_state_dict"]
-            )
-            self.pretrain_iter = checkpoint["pretrain_iter"]
-            self.online_iter = checkpoint["online_iter"]
-            self.total_transitions_sampled = checkpoint["total_transitions_sampled"]
-            np.random.set_state(checkpoint["np"])
-            random.setstate(checkpoint["python"])
-            torch.set_rng_state(checkpoint["pytorch"])
-            print(f"Model loaded at {path_prefix}/model.pt")
+    def _get_checkpoint(self, path_prefix):
+        checkpoint_path = Path(path_prefix) / "model.pt"
+        if not checkpoint_path.exists():
+            raise FileNotFoundError(f"Checkpoint not found at {checkpoint_path}")
+        with open(checkpoint_path, "rb") as f:
+            return torch.load(f)
+
+    def _restore_checkpoint(self, checkpoint, path_prefix):
+        self.model.load_state_dict(checkpoint["model_state_dict"])
+        self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        self.scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+        self.log_temperature_optimizer.load_state_dict(
+            checkpoint["log_temperature_optimizer_state_dict"]
+        )
+        self.pretrain_iter = checkpoint["pretrain_iter"]
+        self.online_iter = checkpoint["online_iter"]
+        self.total_transitions_sampled = checkpoint["total_transitions_sampled"]
+        self.replay_buffer = ReplayBuffer(
+            self.variant["replay_size"],
+            checkpoint.get("replay_buffer_trajectories", self.offline_trajs),
+        )
+        self.replay_buffer.start_idx = checkpoint.get("replay_buffer_start_idx", 0)
+        self.aug_trajs = checkpoint.get("aug_trajs", [])
+        np.random.set_state(checkpoint["np"])
+        random.setstate(checkpoint["python"])
+        torch.set_rng_state(checkpoint["pytorch"])
+        print(f"Model loaded at {path_prefix}/model.pt")
 
     def _load_dataset(self, env_name):
 
@@ -294,12 +326,12 @@ class Experiment:
                 total_transitions_sampled=self.total_transitions_sampled,
             )
 
+            self.pretrain_iter += 1
+
             self._save_model(
                 path_prefix=self.logger.log_path,
                 is_pretrain_model=True,
             )
-
-            self.pretrain_iter += 1
 
     def evaluate(self, eval_fns):
         eval_start = time.time()
@@ -394,12 +426,12 @@ class Experiment:
                 total_transitions_sampled=self.total_transitions_sampled,
             )
 
+            self.online_iter += 1
+
             self._save_model(
                 path_prefix=self.logger.log_path,
                 is_pretrain_model=False,
             )
-
-            self.online_iter += 1
 
     def evaluate_rcsl(self, eval_envs):
         eval_start = time.time()
@@ -511,6 +543,12 @@ class Experiment:
         )
 
         self.start_time = time.time()
+
+        if self.variant["continue_training"]:
+            print(f"Resuming training from {self.variant['model_path_prefix']}")
+
+
+
         if self.variant["max_pretrain_iters"]:
             self.pretrain(eval_envs, loss_fn)
 
@@ -578,6 +616,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--randomized_target_return", type=bool, default=False)
     parser.add_argument("--tag" , type=str, default="")
+    parser.add_argument("--continue_training", type=bool, default=False)
+    parser.add_argument("--model_path_prefix", type=str, default="./exp/default")
 
     args = parser.parse_args()
 
