@@ -256,7 +256,7 @@ class Experiment:
                 state_mean=self.state_mean,
                 state_std=self.state_std,
                 device=self.device,
-                use_mean=True,
+                use_mean=False,
             )
 
         self.replay_buffer.add_new_trajs(trajs)

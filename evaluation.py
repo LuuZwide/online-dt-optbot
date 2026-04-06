@@ -130,10 +130,16 @@ def vec_evaluate_episode_rtg(
         state_pred = state_pred.detach().cpu().numpy().reshape(num_envs, -1)
         reward_pred = reward_pred.detach().cpu().numpy().reshape(num_envs)
 
-        # the return action is a SquashNormal distribution
-        action = action_dist.sample().reshape(num_envs, -1, act_dim)[:, -1]
+        
         if use_mean:
             action = action_dist.mean.reshape(num_envs, -1, act_dim)[:, -1]
+        else:
+            mu = action_dist.mean
+            std = action_dist.stddev
+            alpha = 0.2
+            action = mu + alpha * std * torch.randn_like(std)
+            action = action.reshape(num_envs, -1, act_dim)[:, -1]
+        
         action = action.clamp(*model.action_range)
 
         state, reward, done, _ = vec_env.step(action.detach().cpu().numpy())
