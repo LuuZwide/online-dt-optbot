@@ -2,6 +2,7 @@ from decision_transformer.Colab.utils import create_feature_set
 from decision_transformer.Colab.ChartEnv import ChartEnv
 import os
 import pandas as pd
+import numpy as np
 from pathlib import Path
 
 
@@ -40,13 +41,19 @@ def build_env():
         train_close_data.reset_index(drop=True, inplace=True)
         test_close_data.reset_index(drop=True, inplace=True)
 
-        env_charts[symbol] = train_data
+        env_charts[symbol] = train_data.to_numpy(dtype=np.float32)
         env_close_prices[symbol] = train_close_data
 
-        env_test_charts[symbol] = test_data
+        env_test_charts[symbol] = test_data.to_numpy(dtype=np.float32)
         env_close_test_prices[symbol] = test_close_data
     
-    train_env = ChartEnv(chart_dict = env_charts, close_prices= env_close_prices , symbols = symbols,timesteps = 1, episode_length = 1440, recurrent= False, random_start=True) 
-    test_env = ChartEnv(chart_dict = env_test_charts, close_prices= env_close_test_prices , symbols = symbols,timesteps = 1, episode_length = 1440, recurrent= False, random_start=True)
+
+    env_charts = pd.concat(env_charts, axis=1)
+    env_charts = env_charts.astype(np.float32).dropna().values
+    env_test_charts = pd.concat(env_test_charts, axis=1)
+    env_test_charts = env_test_charts.astype(np.float32).dropna().values
+
+    train_env = ChartEnv(chart = env_charts, close_prices= env_close_prices , symbols = symbols,timesteps = 1, episode_length = 1440, recurrent= False, random_start=True) 
+    test_env = ChartEnv(chart = env_test_charts, close_prices= env_close_test_prices , symbols = symbols,timesteps = 1, episode_length = 1440, recurrent= False, random_start=True)
 
     return train_env, test_env

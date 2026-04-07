@@ -8,14 +8,11 @@ from decision_transformer.Colab.portfolio import portfolio
 class ChartEnv(gym.Env):
   metadata = {'render_modes': ['console']}
   
-  def __init__(self, chart_dict,close_prices, symbols ,timesteps = 20, episode_length = 4*60, recurrent= False, random_start = False):
+  def __init__(self, chart,close_prices, symbols ,timesteps = 20, episode_length = 4*60, recurrent= False, random_start = False):
     super(ChartEnv, self).__init__()
-    self.chart = pd.concat(chart_dict, axis=1)
+    self.chart = chart
     self.close_prices_dict = close_prices
-    self.chart = self.chart.dropna().values
-    self.chart = self.chart.astype(np.float64)
-    #print('chart shape : ', self.chart.shape)
-    self.chart_dict = chart_dict
+    self.chart = self.chart.astype(np.float32).values
     self.symbols = symbols
     self.chart_len,self.cols = self.chart.shape
     #print(f"DEBUG: ChartEnv __init__: self.cols = {self.cols}, len(self.symbols) = {len(self.symbols)}") # Debug print
