@@ -134,11 +134,7 @@ def vec_evaluate_episode_rtg(
         if use_mean:
             action = action_dist.mean.reshape(num_envs, -1, act_dim)[:, -1]
         else:
-            mu = action_dist.mean
-            std = action_dist.stddev
-            alpha = 0.2
-            action = mu + alpha * std * torch.randn_like(std)
-            action = action.reshape(num_envs, -1, act_dim)[:, -1]
+            action = action_dist.sample().reshape(num_envs, -1, act_dim)[:, -1]
         
         action = action.clamp(*model.action_range)
 

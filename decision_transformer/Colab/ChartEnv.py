@@ -12,7 +12,6 @@ class ChartEnv(gym.Env):
     super(ChartEnv, self).__init__()
     self.chart = chart
     self.close_prices_dict = close_prices
-    self.chart = self.chart.astype(np.float32).values
     self.symbols = symbols
     self.chart_len,self.cols = self.chart.shape
     #print(f"DEBUG: ChartEnv __init__: self.cols = {self.cols}, len(self.symbols) = {len(self.symbols)}") # Debug print
@@ -148,7 +147,7 @@ class ChartEnv(gym.Env):
     self.prev_action = None
 
     self.counter = 0
-    return state, {}
+    return state
 
   def step(self, action):
 
@@ -194,7 +193,7 @@ class ChartEnv(gym.Env):
         'port_value' : self.port_value
     }
     
-    return next_state, reward, terminated, truncated, info
+    return next_state, reward, terminated, info
 
   def close(self):
     pass

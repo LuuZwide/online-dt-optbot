@@ -41,10 +41,10 @@ def build_env():
         train_close_data.reset_index(drop=True, inplace=True)
         test_close_data.reset_index(drop=True, inplace=True)
 
-        env_charts[symbol] = train_data.to_numpy(dtype=np.float32)
+        env_charts[symbol] = train_data
         env_close_prices[symbol] = train_close_data
 
-        env_test_charts[symbol] = test_data.to_numpy(dtype=np.float32)
+        env_test_charts[symbol] = test_data
         env_close_test_prices[symbol] = test_close_data
     
 
