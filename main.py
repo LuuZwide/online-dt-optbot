@@ -25,7 +25,7 @@ from decision_transformer.models.decision_transformer import DecisionTransformer
 from evaluation import create_vec_eval_episodes_fn, vec_evaluate_episode_rtg
 from trainer import SequenceTrainer
 from logger import Logger
-from decision_transformer.Colab import build
+from decision_transformer.Colab import ChartEnv, build
 import os
 
 MAX_EPISODE_LEN = 1440
@@ -534,11 +534,14 @@ class Experiment:
                 -log_likelihood,
                 entropy,
             )
+        
+        env_charts, env_close_prices, env_test_charts, env_close_test_prices = build.build_charts()
 
         def get_env_builder(type = 0):
             def make_env_fn():
 
-                env, eval_env = build.build_env()
+                env = ChartEnv.ChartEnv(chart = env_charts, close_prices= env_close_prices , symbols = ['EURUSD', 'GBPUSD','USDJPY','USDCHF'],timesteps = 1, episode_length = 1440, recurrent= False, random_start=True)
+                eval_env = ChartEnv.ChartEnv(chart = env_test_charts, close_prices= env_close_test_prices , symbols = ['EURUSD', 'GBPUSD','USDJPY','USDCHF'],timesteps = 1, episode_length = 1440, recurrent= False, random_start=True) 
                 if type == 0:
                     return env
                 else:

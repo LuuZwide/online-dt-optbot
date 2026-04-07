@@ -9,7 +9,7 @@ from pathlib import Path
 DATAFILES_DIR = Path(__file__).resolve().parent / "datafiles"
 
 
-def build_env():
+def build_charts():
     symbols = ['EURUSD', 'GBPUSD','USDJPY','USDCHF']
     df_charts = {}
 
@@ -53,7 +53,4 @@ def build_env():
     env_test_charts = pd.concat(env_test_charts, axis=1)
     env_test_charts = env_test_charts.astype(np.float32).dropna().values
 
-    train_env = ChartEnv(chart = env_charts, close_prices= env_close_prices , symbols = symbols,timesteps = 1, episode_length = 1440, recurrent= False, random_start=True) 
-    test_env = ChartEnv(chart = env_test_charts, close_prices= env_close_test_prices , symbols = symbols,timesteps = 1, episode_length = 1440, recurrent= False, random_start=True)
-
-    return train_env, test_env
+    return env_charts, env_close_prices, env_test_charts, env_close_test_prices
