@@ -46,5 +46,3 @@ def build_env():
     test_env = ChartEnv(chart_dict = env_test_charts, close_prices= env_close_test_prices , symbols = symbols,timesteps = 1, episode_length = 1440, recurrent= False, random_start=True)
 
     return train_env, test_env
-
-build_env()

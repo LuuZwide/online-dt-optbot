@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 import random
 from decision_transformer.Colab.portfolio import portfolio
 
 class ChartEnv(gym.Env):
-  metadata = {'render.modes': ['console']}
+  metadata = {'render_modes': ['console']}
   
   def __init__(self, chart_dict,close_prices, symbols ,timesteps = 20, episode_length = 4*60, recurrent= False, random_start = False):
     super(ChartEnv, self).__init__()
@@ -51,7 +51,7 @@ class ChartEnv(gym.Env):
     self.current_values = np.zeros((self.chart_len + 1,1))
     self.port_diffs = np.zeros((self.chart_len + 1,len(self.symbols))) # Increased size by 1
     self.actions = np.zeros((self.chart_len + 1,len(self.symbols))) # Increased size by 1
-    self.counter = 1
+    self.counter = 0
 
   def get_recurrent_state(self, index):
 
@@ -119,7 +119,8 @@ class ChartEnv(gym.Env):
     self.unreal_pnl = sum(self.portfolio.percentage_diff_dict.values())
     return reward
 
-  def reset(self, seed = None):
+  def reset(self, *, seed=None, options=None):
+    super().reset(seed=seed)
     _ = self.portfolio.reset()
     self.action_dict = {}
     self.port_value = 1
@@ -149,19 +150,25 @@ class ChartEnv(gym.Env):
       state = np.squeeze(state)
     self.prev_action = None
 
-    self.counter = 1
-    return state
+    self.counter = 0
+    return state, {}
 
   def step(self, action):
 
-    done = False
     reward = self.calculate_reward(action)
 
     close_prices = {}
     for symbol in self.symbols:
       close_prices[symbol] = self.close_prices_dict[symbol].iloc[self.index]
 
-    self.index += 1
+    next_index = self.index + 1
+    self.counter += 1
+
+    terminated = self.current_value < 0.997 
+    truncated = self.counter >= self.episode_length or next_index >= self.chart_len
+
+    if next_index < self.chart_len:
+      self.index = next_index
 
     next_state = self.get_recurrent_state(self.index)
     if not self.recurrent:
@@ -170,7 +177,6 @@ class ChartEnv(gym.Env):
     else:
       next_state = np.squeeze(next_state)
 
-    self.counter += 1
     self.prev_action = action
     actions = []
     actions = np.array(np.round(list(self.action_dict.values()),2))
@@ -179,9 +185,6 @@ class ChartEnv(gym.Env):
     total_trans = np.array(list(self.portfolio.total_trans.values()))
 
     #log info variables
-
-    if self.current_value < 0.997:
-      done = True
 
     #log s_counter and b_counter
     info = {
@@ -193,7 +196,8 @@ class ChartEnv(gym.Env):
         'action_dict' : actions,
         'port_value' : self.port_value
     }
-    return next_state, reward, done, info
+    
+    return next_state, reward, terminated, truncated, info
 
   def close(self):
     pass
