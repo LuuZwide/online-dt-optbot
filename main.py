@@ -29,11 +29,25 @@ from decision_transformer.Colab import build
 import os
 
 MAX_EPISODE_LEN = 1440
+PROJECT_ROOT = Path(__file__).resolve().parent
+DATA_DIR = PROJECT_ROOT / "data"
 os.environ["WANDB_MODE"] = "offline"
+
+
+def resolve_project_path(path_like):
+    path = Path(path_like)
+    if path.is_absolute():
+        return path
+    return PROJECT_ROOT / path
 
 
 class Experiment:
     def __init__(self, variant):
+        variant["save_dir"] = str(resolve_project_path(variant["save_dir"]))
+        variant["model_path_prefix"] = str(
+            resolve_project_path(variant["model_path_prefix"])
+        )
+
         checkpoint = None
         if variant.get("continue_training"):
             checkpoint = self._get_checkpoint(variant["model_path_prefix"])
@@ -186,7 +200,7 @@ class Experiment:
 
     def _load_dataset(self, env_name):
 
-        dataset_path = f"./data/{env_name}.pkl"
+        dataset_path = DATA_DIR / f"{env_name}.pkl"
         with open(dataset_path, "rb") as f:
             trajectories = pickle.load(f)
 

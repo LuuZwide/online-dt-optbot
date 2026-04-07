@@ -2,6 +2,10 @@ from decision_transformer.Colab.utils import create_feature_set
 from decision_transformer.Colab.ChartEnv import ChartEnv
 import os
 import pandas as pd
+from pathlib import Path
+
+
+DATAFILES_DIR = Path(__file__).resolve().parent / "datafiles"
 
 
 def build_env():
@@ -9,10 +13,10 @@ def build_env():
     df_charts = {}
 
     # build charts
-    for file in os.listdir("./decision_transformer/Colab/datafiles"):
+    for file in os.listdir(DATAFILES_DIR):
         if file.endswith(".pkl"):
             symbol = file.replace(".pkl", "")
-            df_charts[symbol] = pd.read_pickle(os.path.join("./decision_transformer/Colab/datafiles", file))
+            df_charts[symbol] = pd.read_pickle(DATAFILES_DIR / file)
     
 
     #build datasets
