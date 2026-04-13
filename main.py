@@ -175,7 +175,7 @@ class Experiment:
         if not checkpoint_path.exists():
             raise FileNotFoundError(f"Checkpoint not found at {checkpoint_path}")
         with open(checkpoint_path, "rb") as f:
-            return torch.load(f)
+            return torch.load(f, weights_only=False)
 
     def _restore_checkpoint(self, checkpoint, path_prefix):
         self.model.load_state_dict(checkpoint["model_state_dict"])
