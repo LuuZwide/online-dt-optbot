@@ -39,7 +39,7 @@ class ChartEnv(gym.Env):
     self.current_position = []
 
     # MODIFIED: Change action space to allow 2 discrete actions (0, 1) per symbol
-    # self.action_space = MultiDiscrete([2] * len(self.symbols))
+    self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(len(self.symbols),), dtype=np.float32)
 
     obs_dim = 2 + self.cols + 2*len(self.symbols)
     print('obs_dim : ', obs_dim)
@@ -153,8 +153,7 @@ class ChartEnv(gym.Env):
     return state,{}
 
   def step(self, action):
-    trunc = False
-    done = False
+    terminated = False
     reward = self.calculate_reward(action)
 
     if(self.counter == self.episode_length) or (self.current_value < self.threshold):
@@ -163,9 +162,9 @@ class ChartEnv(gym.Env):
       reward = np.tanh( 100 * np.log(self.current_value / self.portfolio.value))
 
       if (self.counter == self.episode_length):
-        trunc = True
+        terminated = True
       if (self.current_value < self.threshold):
-        done = True
+        terminated = True
 
     self.index += 1
 
@@ -198,7 +197,7 @@ class ChartEnv(gym.Env):
         'port_value' : self.port_value,
         'trans_sum' : trans_sum
     }
-    return next_state, reward, done,trunc, info
+    return next_state, reward, terminated, info
 
   def close(self):
     pass
