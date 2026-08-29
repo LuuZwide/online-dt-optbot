@@ -138,7 +138,7 @@ def vec_evaluate_episode_rtg(
         
         action = action.clamp(*model.action_range)
 
-        state, reward, done, _ = vec_env.step(action.detach().cpu().numpy())
+        state, reward, trunc, done, _ = vec_env.step(action.detach().cpu().numpy())
 
         # eval_env.step() will execute the action for all the sub-envs, for those where
         # the episodes have terminated, the envs will be reset. Hence we use
@@ -175,8 +175,9 @@ def vec_evaluate_episode_rtg(
 
         if t == max_ep_len - 1:
             done = np.ones(done.shape).astype(bool)
+            trunc = np.ones(trunc.shape).astype(bool)
 
-        if np.any(done):
+        if np.any(done) or np.any(trunc):
             ind = np.where(done)[0]
             unfinished[ind] = False
             episode_length[ind] = np.minimum(episode_length[ind], t + 1)

@@ -15,6 +15,7 @@ import torch
 import numpy as np
 import wandb
 
+
 import utils
 from replay_buffer import ReplayBuffer
 from lamb import Lamb
@@ -113,7 +114,7 @@ class Experiment:
 
         wandb_kwargs = {
             "name": variant["exp_name"],
-            "project": "decision-transformer-opt-experiments",
+            "project": "odt-opt-experiments",
             "config": variant,
             "tags": [],
             "reinit": True,
@@ -133,8 +134,8 @@ class Experiment:
             self._restore_checkpoint(checkpoint, variant["model_path_prefix"])
 
     def _get_env_spec(self, variant):
-        state_dim = 26
-        act_dim = 4
+        state_dim = 41
+        act_dim = 5
         action_range = [
             float(-1.0) + 1e-6,
             float(1.0) - 1e-6,
@@ -237,6 +238,8 @@ class Experiment:
         trajectories = [trajectories[ii] for ii in sorted_inds]
 
         return trajectories, state_mean, state_std
+    
+
 
     def _augment_trajectories(
         self,
@@ -490,6 +493,7 @@ class Experiment:
 
             mean_scores, std_scores = np.mean(score_mean_gms), np.std(score_mean_gms)       
             mean_length, std_length = np.mean(lengths_gm), np.std(std_lengths)
+            print(f"Target Return: {eval_rtg}, Mean Score: {mean_scores}, STD Score: {std_scores}, Mean Length: {mean_length}, STD Length: {std_length}")
             
             target_performance = eval_rtg
             rc_error = (target_performance - mean_scores)**2
@@ -535,17 +539,34 @@ class Experiment:
                 entropy,
             )
         
-        env_charts, env_close_prices, env_test_charts, env_close_test_prices = build.build_charts()
+        env_charts, env_close_prices, env_dates, env_test_charts, env_close_test_prices, env_dates_test = build.build_charts()
 
         def get_env_builder(type = 0):
             def make_env_fn():
-
-                env = ChartEnv.ChartEnv(chart = env_charts, close_prices= env_close_prices , symbols = ['EURUSD', 'GBPUSD','USDJPY','USDCHF'],timesteps = 1, episode_length = 1440, recurrent= False, random_start=True)
-                eval_env = ChartEnv.ChartEnv(chart = env_test_charts, close_prices= env_close_test_prices , symbols = ['EURUSD', 'GBPUSD','USDJPY','USDCHF'],timesteps = 1, episode_length = 1440, recurrent= False, random_start=True) 
                 if type == 0:
-                    return env
-                else:
-                    return eval_env
+                    return ChartEnv.ChartEnv(
+                        chart_dict=env_charts,
+                        close_prices=env_close_prices,
+                        symbols=['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD'],
+                        timesteps=1,
+                        episode_length=1440,
+                        recurrent=False,
+                        random_start=False,
+                        dates_dict=env_dates,
+                        noise_level=1e-5,
+                    )
+
+                return ChartEnv.ChartEnv(
+                    chart_dict=env_test_charts,
+                    close_prices=env_close_test_prices,
+                    symbols=['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD'],
+                    timesteps=1,
+                    episode_length=1440,
+                    recurrent=False,
+                    random_start=False,
+                    dates_dict=env_dates_test,
+                    noise_level=1e-5,
+                )
 
             return make_env_fn
 
@@ -602,7 +623,7 @@ if __name__ == "__main__":
     parser.add_argument("--ordering", type=int, default=0)
 
     # shared evaluation options
-    parser.add_argument("--eval_rtg", type=float, default=3600)
+    parser.add_argument("--eval_rtg", type=float, default=2.0)
     parser.add_argument("--num_eval_episodes", type=int, default=10)
     parser.add_argument("--num_eval_rollouts", type=int, default=10)
 
@@ -619,7 +640,7 @@ if __name__ == "__main__":
 
     # finetuning options
     parser.add_argument("--max_online_iters", type=int, default=1500)
-    parser.add_argument("--online_rtg", type=float, default=7200)
+    parser.add_argument("--online_rtg", type=float, default=2.0)
     parser.add_argument("--num_online_rollouts", type=int, default=1)
     parser.add_argument("--replay_size", type=int, default=1000)
     parser.add_argument("--num_updates_per_online_iter", type=int, default=300)
