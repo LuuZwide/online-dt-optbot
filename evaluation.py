@@ -138,7 +138,7 @@ def vec_evaluate_episode_rtg(
         
         action = action.clamp(*model.action_range)
 
-        state, reward, trunc, done, _= vec_env.step(action.detach().cpu().numpy())
+        state, reward, done, _= vec_env.step(action.detach().cpu().numpy())
 
         print(f"Step: {t}, Reward: {reward}, Done: {done}, Trunc: {trunc}")
         # print action and state and reward

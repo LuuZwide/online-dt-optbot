@@ -153,7 +153,8 @@ class ChartEnv(gym.Env):
     return state,{}
 
   def step(self, action):
-    terminated = False
+    done = False
+    trunc = False
     reward = self.calculate_reward(action)
 
     if(self.counter == self.episode_length) or (self.current_value < self.threshold):
@@ -162,9 +163,9 @@ class ChartEnv(gym.Env):
       reward = np.tanh( 100 * np.log(self.current_value / self.portfolio.value))
 
       if (self.counter == self.episode_length):
-        terminated = True
+        trunc = True
       if (self.current_value < self.threshold):
-        terminated = True
+        done = True
 
     self.index += 1
 
@@ -197,7 +198,7 @@ class ChartEnv(gym.Env):
         'port_value' : self.port_value,
         'trans_sum' : trans_sum
     }
-    return next_state, reward, terminated, info
+    return next_state, reward, trunc, done, info
 
   def close(self):
     pass
