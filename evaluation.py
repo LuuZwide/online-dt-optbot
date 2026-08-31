@@ -140,9 +140,9 @@ def vec_evaluate_episode_rtg(
 
         state, reward, done, _= vec_env.step(action.detach().cpu().numpy())
 
-        print(f"Step: {t}, Reward: {reward}, Done: {done}, Trunc: {trunc}")
+        # print(f"Step: {t}, Reward: {reward}, Done: {done}, Trunc: {trunc}")
         # print action and state and reward
-        print(f"Action: {action.detach().cpu().numpy()}, State: {state}, Reward: {reward}")
+        # print(f"Action: {action.detach().cpu().numpy()}, State: {state}, Reward: {reward}")
 
         # eval_env.step() will execute the action for all the sub-envs, for those where
         # the episodes have terminated, the envs will be reset. Hence we use
