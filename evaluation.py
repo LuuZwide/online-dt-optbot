@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 
-MAX_EPISODE_LEN = 1000
+MAX_EPISODE_LEN = 1440
 
 def create_vec_eval_episodes_fn(
     env_name,
@@ -58,7 +58,7 @@ def vec_evaluate_episode_rtg(
     act_dim,
     model,
     target_return: list,
-    max_ep_len=1000,
+    max_ep_len=1440,
     reward_scale=0.001,
     state_mean=0.0,
     state_std=1.0,
@@ -179,9 +179,8 @@ def vec_evaluate_episode_rtg(
 
         if t == max_ep_len - 1:
             done = np.ones(done.shape).astype(bool)
-            trunc = np.ones(trunc.shape).astype(bool)
 
-        if np.any(done) or np.any(trunc):
+        if np.any(done):
             ind = np.where(done)[0]
             unfinished[ind] = False
             episode_length[ind] = np.minimum(episode_length[ind], t + 1)
