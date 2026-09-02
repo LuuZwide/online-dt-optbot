@@ -551,7 +551,7 @@ class Experiment:
                         timesteps=1,
                         episode_length=1440,
                         recurrent=False,
-                        random_start=False,
+                        random_start=True,
                         dates_dict=env_dates,
                         noise_level=1e-5,
                     )
@@ -563,7 +563,7 @@ class Experiment:
                     timesteps=1,
                     episode_length=1440,
                     recurrent=False,
-                    random_start=False,
+                    random_start=True,
                     dates_dict=env_dates_test,
                     noise_level=1e-5,
                 )
