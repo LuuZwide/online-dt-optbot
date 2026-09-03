@@ -140,7 +140,7 @@ actions = torch.zeros((num_envs, 0, act_dim), device=device, dtype=torch.float32
 
 rewards = torch.zeros((num_envs, 0, 1), device=device, dtype=torch.float32)
 
-target_return = 1.0
+target_return = 2.0
 
 ep_return = target_return
 
@@ -153,6 +153,7 @@ timesteps = torch.tensor([0] * num_envs, device=device, dtype=torch.long).reshap
 )
 t = 0
 K = 20   
+avg_actions = []
 
 episode_return = np.zeros((num_envs, 1)).astype(float)
 episode_length = np.full(num_envs, np.inf)
@@ -191,14 +192,12 @@ for episode in range(1440):
     state_pred = state_pred.detach().cpu().numpy().reshape(num_envs, -1)
     reward_pred = reward_pred.detach().cpu().numpy().reshape(num_envs)
     action = action_dist.mean.reshape(num_envs, -1, act_dim)[:, -1]
+    action = torch.where(action > 0.5, torch.ones_like(action), torch.zeros_like(action))
+    print(f"Episode: {episode+1}, Action: {action.detach().cpu().numpy()}, Reward: {reward_pred}")
     next_state, reward, trunc, done, info = env.step(action.detach().cpu().numpy())
-
-    final_action = action.detach().cpu().numpy()
-    final_action = np.where(final_action > 0.5, 1, 0)
-    print(f"Action at step {t}: {np.round(final_action, 2)} Reward: {np.round(reward, 2)} Current Value: {np.round(env.current_value, 5)} Portfolio Value: {np.round(env.portfolio.value, 5)}")
-
     episode_return += reward
     actions[:, -1] = action
+    avg_actions.append(action.detach().cpu().numpy()[0])
 
     next_state = (
                 torch.from_numpy(next_state)
@@ -226,7 +225,9 @@ for episode in range(1440):
     
     avg_returns.append(episode_return)
     #average actions
-    avg_actions, std_actions = np.round(np.mean(action_array, axis=0),2), np.round(np.std(action_array, axis=0),2)
+    #avg_actions, std_actions = np.round(np.mean(avg_actions),2), np.round(np.std(avg_actions),2)
+
+print(f"avg_actions over {episode+1} episodes: {np.round(np.mean(avg_actions,axis=0),2)} ")
 
 #print(f"Average Return over 10 episodes: {np.mean(avg_returns)}")
 #print("Current Value sum : ", curr_value_sum)

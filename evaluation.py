@@ -70,6 +70,7 @@ def vec_evaluate_episode_rtg(
 
     model.eval()
     model.to(device=device)
+    avg_actions = []
 
     state_mean = torch.from_numpy(state_mean).to(device=device)
     state_std = torch.from_numpy(state_std).to(device=device)
@@ -137,8 +138,12 @@ def vec_evaluate_episode_rtg(
             action = action_dist.sample().reshape(num_envs, -1, act_dim)[:, -1]
         
         action = action.clamp(*model.action_range)
-
+        # where action > 0.5, set to 1, else 0
+        action = torch.where(action > 0.5, torch.ones_like(action), torch.zeros_like(action))
+        
         state, reward, done, _= vec_env.step(action.detach().cpu().numpy())
+
+        avg_actions.append(action.detach().cpu().numpy()[0])
 
         # print(f"Step: {t}, Reward: {reward}, Done: {done}, Trunc: {trunc}")
         # print action and state and reward
@@ -149,6 +154,7 @@ def vec_evaluate_episode_rtg(
         # "unfinished" to track whether the first episode we roll out for each sub-env is
         # finished. In contrast, "done" only relates to the current episode
         episode_return[unfinished] += reward[unfinished].reshape(-1, 1)
+
 
         actions[:, -1] = action
         state = (
@@ -202,6 +208,7 @@ def vec_evaluate_episode_rtg(
         }
         trajectories.append(traj)
 
+    print(f"Average actions taken in episodes: {np.mean(avg_actions)}")
     return (
         episode_return.reshape(num_envs),
         episode_length.reshape(num_envs),

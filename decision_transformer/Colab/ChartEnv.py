@@ -155,6 +155,8 @@ class ChartEnv(gym.Env):
   def step(self, action):
     done = False
     trunc = False
+    # Ensure that action is a numpy array and has shape (len(symbols),)
+    action = np.array(action).reshape(len(self.symbols),)
     reward = self.calculate_reward(action)
 
     if(self.counter == self.episode_length) or (self.current_value < self.threshold):
