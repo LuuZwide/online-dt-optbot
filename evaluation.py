@@ -208,7 +208,7 @@ def vec_evaluate_episode_rtg(
         }
         trajectories.append(traj)
 
-    print(f"Average actions taken in episodes: {np.mean(avg_actions)}")
+    print(f"Average actions taken in episodes:{np.round(np.mean(avg_actions,axis=0),2)} ")
     return (
         episode_return.reshape(num_envs),
         episode_length.reshape(num_envs),
