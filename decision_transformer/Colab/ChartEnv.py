@@ -168,6 +168,7 @@ class ChartEnv(gym.Env):
         trunc = True
       if (self.current_value < self.threshold):
         done = True
+      print(f"Trans Counter: {self.portfolio.trans_sum}, Current Value: {self.current_value}, Portfolio Value: {self.portfolio.value}, Action: {action}")
 
     self.index += 1
 
